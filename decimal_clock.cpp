@@ -12,20 +12,15 @@ int main(){
     int msHoy, dSec, dMin, dHour;
 
     while (true) {
-        //Tiempo en segundos desde EPOC + milisegundos
+        //Tiempo en segundos desde EPOCH + milisegundos
         gettimeofday(&ahora , NULL);
 
-        //Struct de la fecha y hora actual en UTC
-        hoyEpocS = gmtime(&ahora.tv_sec);
-
-        //Ajustamos a 00:00
-        hoyEpocS->tm_hour = 0; hoyEpocS->tm_min = 0; hoyEpocS->tm_sec = 0;
-
-        //Calculamos los segundos desde EPOC hasta 00:00 de hoy
-        hoyEpoc = timegm(hoyEpocS);
+        //Tiempo desde la última media noche UTC en segundos
+        //Se asume que el EPOCH está en UTC
+        ahora.tv_sec %= 24*60*60;
 
         //Milisegundos desde 00:00 de hoy
-        msHoy = (ahora.tv_sec - hoyEpoc)*1000 + ahora.tv_usec/1000;
+        msHoy = ahora.tv_sec*1000 + ahora.tv_usec/1000;
         
         //Ajuste por el tiempo solar en París
         //La medianoche solar en París ocurre 9 minutos 20,935 segundos = 560935 mS antes
@@ -42,7 +37,8 @@ int main(){
 
         cout << dHour << ':' << (dMin<10?'0':'\0') << dMin << ':' << (dSec<10?'0':'\0') << dSec << endl;
 
-        this_thread::sleep_for(chrono::milliseconds( ((msHoy/864+1)*864) - msHoy ));
+        chrono::time_point<chrono::steady_clock> tick = chrono::steady_clock::now() + chrono::milliseconds(((msHoy/864+1)*864) - msHoy);
+        this_thread::sleep_until(tick);
         system("clear");
     }
 }
