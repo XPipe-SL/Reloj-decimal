@@ -9,30 +9,32 @@ int main(){
     time_point<system_clock> tick = system_clock::now();
     auto duration = tick.time_since_epoch();
 
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration);
-    duration -= microseconds%1000;
+    auto microseconds = duration_cast<chrono::microseconds>(duration);
     tick -= microseconds%1000;
-    auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
-    duration -= nanoseconds%1000;
-    tick -= microseconds%1000;
+    duration = tick.time_since_epoch();
+    auto nanoseconds = duration_cast<chrono::nanoseconds>(duration);
+    tick -= nanoseconds%1000;
+    duration = tick.time_since_epoch();
 
-    using Days = std::chrono::duration<int, std::ratio<86400>>;
-    Days days = std::chrono::duration_cast<Days>(duration);
-    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+    using Days = chrono::duration<int, std::ratio<86400>>;
+    Days days = duration_cast<Days>(duration);
+    auto milliseconds = duration_cast<chrono::milliseconds>(duration);
 
     int msHoy, dSec, dMin, dHour;
 
     while (true) {
+        system("clear");
+        
         //Tiempo desde EPOCH
         duration = tick.time_since_epoch();
 
         //Tiempo desde la última media noche UTC en segundos
         //Se asume que el EPOCH está en UTC
-        days = std::chrono::duration_cast<Days>(duration);
+        days = duration_cast<Days>(duration);
         duration -= days;
 
         //Milisegundos desde 00:00 de hoy
-        milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+        milliseconds = duration_cast<chrono::milliseconds>(duration);
         msHoy = milliseconds.count();
         
         //Ajuste por el tiempo solar en París
@@ -52,6 +54,5 @@ int main(){
 
         tick += chrono::milliseconds(((msHoy/864+1)*864) - msHoy);
         this_thread::sleep_until(tick);
-        system("clear");
     }
 }
