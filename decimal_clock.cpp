@@ -1,5 +1,4 @@
 #include <iostream>
-#include <sys/time.h>
 #include <chrono>
 #include <thread>
 
@@ -20,7 +19,7 @@ int main(){
     using Days = std::chrono::duration<int, std::ratio<86400>>;
     Days days = std::chrono::duration_cast<Days>(duration);
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-    
+
     int msHoy, dSec, dMin, dHour;
 
     while (true) {
