@@ -4,23 +4,37 @@
 #include <thread>
 
 using namespace std;
+using namespace std::chrono;
 
 int main(){
-    timeval ahora;
-    struct tm * hoyEpocS;
-    time_t hoyEpoc;
+    time_point<system_clock> tick = system_clock::now();
+    auto duration = tick.time_since_epoch();
+
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration);
+    duration -= microseconds%1000;
+    tick -= microseconds%1000;
+    auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
+    duration -= nanoseconds%1000;
+    tick -= microseconds%1000;
+
+    using Days = std::chrono::duration<int, std::ratio<86400>>;
+    Days days = std::chrono::duration_cast<Days>(duration);
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+    
     int msHoy, dSec, dMin, dHour;
 
     while (true) {
-        //Tiempo en segundos desde EPOCH + milisegundos
-        gettimeofday(&ahora , NULL);
+        //Tiempo desde EPOCH
+        duration = tick.time_since_epoch();
 
         //Tiempo desde la última media noche UTC en segundos
         //Se asume que el EPOCH está en UTC
-        ahora.tv_sec %= 24*60*60;
+        days = std::chrono::duration_cast<Days>(duration);
+        duration -= days;
 
         //Milisegundos desde 00:00 de hoy
-        msHoy = ahora.tv_sec*1000 + ahora.tv_usec/1000;
+        milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+        msHoy = milliseconds.count();
         
         //Ajuste por el tiempo solar en París
         //La medianoche solar en París ocurre 9 minutos 20,935 segundos = 560935 mS antes
@@ -37,7 +51,7 @@ int main(){
 
         cout << dHour << ':' << (dMin<10?'0':'\0') << dMin << ':' << (dSec<10?'0':'\0') << dSec << endl;
 
-        chrono::time_point<chrono::steady_clock> tick = chrono::steady_clock::now() + chrono::milliseconds(((msHoy/864+1)*864) - msHoy);
+        tick += chrono::milliseconds(((msHoy/864+1)*864) - msHoy);
         this_thread::sleep_until(tick);
         system("clear");
     }
